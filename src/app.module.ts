@@ -18,6 +18,7 @@ import { UserModule } from '@modules/user/user.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'src/schemas/schema.gql',
+      graphiql: true,
     }),
     PostgresModule,
     AuthModule,
@@ -26,7 +27,7 @@ import { UserModule } from '@modules/user/user.module';
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
+    // { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
   ],
 })
 export class AppModule {}

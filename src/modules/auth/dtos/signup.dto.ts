@@ -17,5 +17,5 @@ export class SignUpDto {
 
   @IsEnum(UserRole)
   @Field()
-  role: string;
+  role: UserRole;
 }

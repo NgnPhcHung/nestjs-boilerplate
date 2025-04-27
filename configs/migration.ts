@@ -15,20 +15,11 @@ export const AppDataSourceForMigrate = new DataSource({
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
   entities: ENTITIES,
-  migrations: [join(__dirname + './migrations/*{.ts,.js}')],
+  // migrations: [join(__dirname + './migrations/*{.ts,.js}')],
+  migrations: [join(__dirname, '../migrations/*{.ts,.js}')],
   logging: process.env.NODE_ENV !== 'production',
   synchronize: false,
   migrationsRun: false,
   migrationsTableName: 'migrations',
   namingStrategy: new NamingStrategy(),
 } as DataSourceOptions);
-
-console.log('Loaded DB config:', {
-  engine: process.env.DATABASE_ENGINE,
-  host: process.env.DATABASE_HOST,
-  port: process.env.DATABASE_PORT,
-});
-
-AppDataSourceForMigrate.initialize().then(() => {
-  console.log('Metadatas:', ENTITIES);
-});

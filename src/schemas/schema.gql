@@ -2,12 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type UserModel {
+  id: Int!
+  email: String!
+  name: String
+}
+
 type AuthResponse {
   accessToken: String!
 }
 
 type Query {
   ping: String!
+  getUser: UserModel!
 }
 
 type Mutation {

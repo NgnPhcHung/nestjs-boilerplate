@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import { SignInDto } from '../dtos/signin.dto';
 import { SignUpDto } from '../dtos/signup.dto';
 import { hashPassword } from '../utils/hash-password';
+import { UserEntity } from '@entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,7 @@ export class AuthService {
   ) {}
 
   async signUp(payload: SignUpDto) {
-    const user = this.userService.findOneBy({ email: payload.email });
+    const user = await this.userService.findOneBy({ email: payload.email });
     if (user) {
       throw new AppBadRequest(ERROR_CODE.USER_ALREADY_EXIST);
     }
@@ -27,13 +28,11 @@ export class AuthService {
     const password = await hashPassword(payload.password);
     const newUser = await this.userService.createUser({ ...payload, password });
 
-    const accessToken = this.getAccessToken(newUser.id, newUser.roleId);
+    const accessToken = this.getAccessToken(newUser);
     const { token: refreshToken } = this.generateRefreshToken();
 
-    const hashedRefreshToken = await bcrypt.hash(
-      refreshToken,
-      process.env.SALT_ROUND,
-    );
+    const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
 
     await this.redisService.setData(
       `refresh:${newUser.id}`,
@@ -50,14 +49,12 @@ export class AuthService {
     const user = await this.validateUser(email, password);
     if (!user) throw new AppForbiddenException(ERROR_CODE.INVALID_CREDENTIALS);
 
-    const accessToken = this.getAccessToken(user.id, user.roleId);
+    const accessToken = this.getAccessToken(user);
 
     const { token: refreshToken } = this.generateRefreshToken();
 
-    const hashedRefreshToken = await bcrypt.hash(
-      refreshToken,
-      process.env.SALT_ROUND,
-    );
+    const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
 
     await this.redisService.setData(
       `refresh:${user.id}`,
@@ -90,7 +87,7 @@ export class AuthService {
       hashedNewRefreshToken,
       +process.env.REFRESH_EXPIRED_IN,
     );
-    const newAccessToken = this.getAccessToken(user.id, user.roleId);
+    const newAccessToken = this.getAccessToken(user);
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken.token,
@@ -113,9 +110,9 @@ export class AuthService {
     return null;
   }
 
-  getAccessToken(userId: number, role: number) {
+  getAccessToken(user: UserEntity) {
     return this.jwtService.sign(
-      { sub: { userId, role } },
+      { sub: { userId: user.id, role: user.role } },
       {
         secret: process.env.JWT_ACCESS_SECRET,
         expiresIn: process.env.ACCESS_EXPIRED_IN,
@@ -138,6 +135,7 @@ export class AuthService {
       expiresIn,
     );
   }
+
   private async getTokenRemainingTime(token: string) {
     const payload = this.jwtService.decode(token) as { exp: number };
     const now = Math.floor(Date.now() / 1000);

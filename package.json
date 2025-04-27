@@ -21,7 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d ./configs/migration.ts",
     "migration:create": "node ./scripts/create-migration.js",
-    "migration:generate": "node ./scripts/generate-migration.js"
+    "migration:generate": "node ./scripts/generate-migration.js",
+    "migration:run": "pnpm run typeorm migration:run",
+    "migration:revert": "pnpm run typeorm migration:revert"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.0.2",
@@ -35,12 +37,14 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
     "bcryptjs": "^3.0.2",
     "cache-manager": "^6.4.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "graphql": "^16.10.0",
     "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
