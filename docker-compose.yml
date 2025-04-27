@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: template_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER} 
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD} 
+      POSTGRES_DB: ${DATABASE_NAME} 
+    volumes:
+      - pddata:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+    env_file:
+      - path: ./.env
+  
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER_NAME}
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    volumes:
+      - redisdata:/data
+
+  backend:
+    build:
+      context: .
+    container_name: ${BACKEND_CONTAINER_NAME} 
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: ${DATABASE_PORT} 
+      DATABASE_USER: ${DATABASE_USER} 
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD} 
+      DATABASE_NAME: ${DATABASE_NAME}
+    depends_on:
+      - postgres
+    ports:
+      - '${APP_PORT}:${APP_PORT}'
+    volumes:
+      - .:/app
+    command: sh -c 'pnpm install && pnpm start:dev'
+
+volumes:
+  pddata: {}
+  redisdata: {}
