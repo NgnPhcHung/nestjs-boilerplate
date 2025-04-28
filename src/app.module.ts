@@ -2,7 +2,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { APP_GUARD } from '@nestjs/core';
@@ -10,6 +10,7 @@ import { AccessTokenBlacklistGuard } from '@guards/blacklist.guard';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PostgresModule } from '@modules/db/postgres.module';
 import { UserModule } from '@modules/user/user.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -20,6 +21,18 @@ import { UserModule } from '@modules/user/user.module';
       autoSchemaFile: 'src/schemas/schema.gql',
       graphiql: true,
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            limit: config.get('THROTTLE_LIMIT'),
+            ttl: config.get('THROTTLE_TTL'),
+          },
+        ],
+      }),
+    }),
     PostgresModule,
     AuthModule,
     UserModule,
@@ -27,7 +40,7 @@ import { UserModule } from '@modules/user/user.module';
   controllers: [AppController],
   providers: [
     AppService,
-    // { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
+    { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
   ],
 })
 export class AppModule {}

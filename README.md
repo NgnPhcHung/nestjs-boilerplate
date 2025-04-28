@@ -1,9 +1,9 @@
 
 # TODO list
-- [ ] Black list jwt
+- [x] Black list jwt
+- [ ] CORS 
 - [ ] Rate Limiting 
 - [ ] IP while list
-- [ ] CORS 
 
 
 # Technicals 
