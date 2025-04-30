@@ -13,7 +13,7 @@ export class SignUpDto {
   password: string;
 
   @Field()
-  name: string;
+  username: string;
 
   @IsEnum(UserRole)
   @Field()

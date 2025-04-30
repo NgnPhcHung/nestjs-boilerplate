@@ -3,13 +3,17 @@ import { RedisService } from '@modules/redis/redis.service';
 import { UserService } from '@modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AppBadRequest, AppForbiddenException } from '@utils/network/exception';
+import {
+  AppConflictException,
+  AppForbiddenException,
+} from '@utils/network/exception';
 import * as bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
 import { SignInDto } from '../dtos/signin.dto';
 import { SignUpDto } from '../dtos/signup.dto';
 import { hashPassword } from '../utils/hash-password';
 import { UserEntity } from '@entities/user.entity';
+import { TrieService } from './trie/trie.service';
 
 @Injectable()
 export class AuthService {
@@ -17,13 +21,11 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly trieService: TrieService,
   ) {}
 
   async signUp(payload: SignUpDto) {
-    const user = await this.userService.findOneBy({ email: payload.email });
-    if (user) {
-      throw new AppBadRequest(ERROR_CODE.USER_ALREADY_EXIST);
-    }
+    await this.checkAndSuggestUsernames(payload.username);
 
     const password = await hashPassword(payload.password);
     const newUser = await this.userService.createUser({ ...payload, password });
@@ -147,5 +149,20 @@ export class AuthService {
       `blacklist:access:${token}`,
     );
     return !!isBlacklisted;
+  }
+
+  private async checkAndSuggestUsernames(username: string) {
+    const exist = await this.redisService.isUsersExist(username);
+    if (exist) {
+      const suggestions =
+        await this.trieService.generateUsernameWithSuffix(username);
+      throw new AppConflictException(
+        ERROR_CODE.USER_ALREADY_EXIST,
+        JSON.stringify({
+          suggestions,
+        }),
+      );
+    }
+    return false;
   }
 }

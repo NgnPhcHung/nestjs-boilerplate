@@ -5,27 +5,47 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AppException } from './exception';
-import { HttpAdapterHost } from '@nestjs/core';
+type AnyClass<T = unknown> = new (...args: any[]) => T;
 
 @Catch()
-export class AppExceptionFilter implements ExceptionFilter {
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
-
-  catch(exception: AppException, host: ArgumentsHost) {
-    const { httpAdapter } = this.httpAdapterHost;
+export class AppExceptionFilter<T> implements ExceptionFilter {
+  catch(exception: T, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const httpStatus =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    let status;
 
-    const responseBody = {
-      statusCode: httpStatus,
-      timeStamp: new Date().toISOString(),
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
+    if (['graphql'].includes(host.getType())) {
+      if (exception instanceof AppException) {
+        const exceptionJson = exception.toJSON();
+        status = exceptionJson.statusCode;
+
+        throw new HttpException(
+          this._response(status, request, exception),
+          status,
+        );
+      }
+    }
+
+    response.status(status).json(this._response(status, request, exception));
+  }
+
+  private _response(
+    status: number,
+    request: Request,
+    exception: AppException | any,
+  ) {
+    const exceptionJson = exception.toJSON();
+    return {
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: request?.url,
+      method: request?.method,
+      params: request?.params,
+      query: request?.query,
+      exception: exceptionJson,
     };
-
-    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
   }
 }

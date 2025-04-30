@@ -4,7 +4,7 @@
 - [ ] CORS 
 - [ ] Rate Limiting 
 - [ ] IP while list
-
+- [ ] Find username and suggest new one (Trie)
 
 # Technicals 
 - GraphQL

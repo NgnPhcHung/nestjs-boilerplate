@@ -30,6 +30,6 @@ input SignInDto {
 input SignUpDto {
   email: String!
   password: String!
-  name: String!
+  username: String!
   role: String!
 }
