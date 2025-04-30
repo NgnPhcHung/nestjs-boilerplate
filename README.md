@@ -2,9 +2,8 @@
 # TODO list
 - [x] Black list jwt
 - [ ] CORS 
-- [ ] Rate Limiting 
-- [ ] IP while list
-- [ ] Find username and suggest new one (Trie)
+- [x] Rate Limiting 
+- [x] Find username and suggest new one (Trie)
 
 # Technicals 
 - GraphQL
