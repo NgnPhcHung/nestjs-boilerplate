@@ -5,12 +5,12 @@
 - [x] Rate Limiting 
 - [x] Find username and suggest new one (Trie)
 
-# Technicals 
-- GraphQL
-- Typeorm
-
-
 # How to use 
+## Setup env
+```bash
+cp .env.example .env
+```
+
 ## Migration
 ### After setup source run
 ```bash

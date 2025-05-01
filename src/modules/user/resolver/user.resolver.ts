@@ -4,6 +4,8 @@ import { UserModel } from '@modules/auth/models/user.model';
 import { CurrentUser } from '@decorators/current-user';
 import { Roles } from '@decorators/role';
 import { UserRole } from '@consts';
+import { ApiKeyGuard } from '@guards/ApiKeyGuard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => UserModel)
 export class UserResolver {
@@ -11,7 +13,8 @@ export class UserResolver {
 
   @Query(() => UserModel)
   @Roles([UserRole.ADMIN])
-  getUser(@CurrentUser() user: { userId: number }) {
+  @UseGuards(ApiKeyGuard)
+  getMe(@CurrentUser() user: { userId: number }) {
     return this.userService.findById(user.userId);
   }
 }
