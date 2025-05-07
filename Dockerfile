@@ -4,13 +4,14 @@ RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+# COPY ./package.json ./pnpm-lock.yaml ./
 
-RUN pnpm install
 
 COPY . .
 
-EXPOSE 3000
+RUN pnpm install
 
-CMD ["pnpm", "run", "start:dev"]
+EXPOSE 3001
+
+CMD ["pnpm", "start"]
 

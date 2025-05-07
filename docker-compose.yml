@@ -26,8 +26,11 @@ services:
       - redisdata:/data
 
   backend:
+    env_file:
+      - ./.env
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: ${BACKEND_CONTAINER_NAME} 
     restart: unless-stopped
     environment:
@@ -40,9 +43,7 @@ services:
       - postgres
     ports:
       - '${APP_PORT}:${APP_PORT}'
-    volumes:
-      - .:/app
-    command: sh -c 'pnpm install && pnpm start:dev'
+   # command: sh -c 'pnpm install && pnpm start:dev'
 
 volumes:
   pddata: {}

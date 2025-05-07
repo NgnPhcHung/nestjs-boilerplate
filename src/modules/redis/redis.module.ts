@@ -10,15 +10,27 @@ import { RedisService } from './redis.service';
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'single',
-        password: configService.get('REDIS_PASSWORD'),
-        db: configService.get('REDIS_DB'),
-        options: {
-          host: configService.get('REDIS_HOST'),
-          port: configService.get('REDIS_PORT'),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        console.log({
+          type: 'single',
+          password: configService.get('REDIS_PASSWORD'),
+          db: configService.get('REDIS_DB'),
+          options: {
+            host: configService.get('REDIS_HOST'),
+            port: configService.get('REDIS_PORT'),
+          },
+        });
+
+        return {
+          type: 'single',
+          password: configService.get('REDIS_PASSWORD'),
+          db: configService.get('REDIS_DB'),
+          options: {
+            host: configService.get('REDIS_HOST'),
+            port: configService.get('REDIS_PORT'),
+          },
+        };
+      },
     }),
   ],
   providers: [RedisService],

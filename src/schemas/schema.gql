@@ -14,7 +14,7 @@ type AuthResponse {
 
 type Query {
   ping: String!
-  getUser: UserModel!
+  getMe: UserModel!
 }
 
 type Mutation {
