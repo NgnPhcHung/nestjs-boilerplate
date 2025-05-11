@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { FindOptionsWhere, In } from 'typeorm';
 import { SignInDto } from '@modules/auth/dtos/signin.dto';
@@ -11,6 +11,7 @@ export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
+    @Inject(UserRepository)
     private readonly userRepository: UserRepository,
     private readonly redisService: RedisService,
   ) {}
@@ -27,7 +28,7 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async syncUsers() {
     this.logger.log('Syncing user...');
 
@@ -45,7 +46,7 @@ export class UserService {
         id: In(users.map((user) => user.id)),
       },
       {
-        lastSyncTime: new Date(Date.now()),
+        isSynced: true,
       },
     );
 

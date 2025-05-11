@@ -2,7 +2,7 @@ import { UserRole } from '@consts';
 import { Column, Entity } from 'typeorm';
 import { BaseEntity } from './base.entity';
 
-@Entity()
+@Entity('user')
 export class UserEntity extends BaseEntity {
   @Column({ unique: true })
   username: string;
@@ -23,8 +23,7 @@ export class UserEntity extends BaseEntity {
   role: UserRole;
 
   @Column({
-    type: 'timestamptz',
-    nullable: true,
+    type: 'boolean',
   })
-  lastSyncTime: Date;
+  isSynced: boolean;
 }

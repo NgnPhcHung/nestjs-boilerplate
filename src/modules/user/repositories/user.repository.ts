@@ -18,18 +18,13 @@ export class UserRepository extends Repository<UserEntity> {
 
   async findUsersForSync() {
     return this.find({
-      where: [
-        {
-          lastSyncTime: LessThan(new Date(Date.now())),
-        },
-        {
-          lastSyncTime: IsNull(),
-        },
-      ],
+      where: {
+        isSynced: false,
+      },
       select: {
         username: true,
         id: true,
-        lastSyncTime: true,
+        isSynced: true,
       },
     });
   }

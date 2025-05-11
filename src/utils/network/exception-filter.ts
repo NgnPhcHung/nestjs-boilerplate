@@ -1,51 +1,59 @@
 import {
-  ExceptionFilter,
   Catch,
+  ExceptionFilter,
   ArgumentsHost,
   HttpException,
-  HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { RpcException } from '@nestjs/microservices';
 import { AppException } from './exception';
-type AnyClass<T = unknown> = new (...args: any[]) => T;
+import { Response } from 'express';
 
 @Catch()
 export class AppExceptionFilter<T> implements ExceptionFilter {
   catch(exception: T, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-    let status;
+    const type = host.getType();
 
     if (['graphql'].includes(host.getType())) {
       if (exception instanceof AppException) {
-        const exceptionJson = exception.toJSON();
-        status = exceptionJson.statusCode;
-
+        const status = exception.toJSON();
         throw new HttpException(
-          this._response(status, request, exception),
-          status,
+          this._response(status.statusCode, exception),
+          status.statusCode,
         );
       }
     }
 
-    response.status(status).json(this._response(status, request, exception));
+    if (type === 'rpc') {
+      if (exception instanceof AppException) {
+        throw new RpcException(exception.toJSON());
+      }
+
+      if (exception instanceof RpcException) {
+        throw exception; // Already good
+      }
+
+      throw new RpcException({
+        code: 13,
+        message: exception || 'Unhandled gRPC error',
+      });
+    }
+
+    // fallback for http if needed
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const status =
+      exception instanceof HttpException ? exception.getStatus() : 500;
+
+    response.status(status).json(this._response(status, exception));
   }
 
-  private _response(
-    status: number,
-    request: Request,
-    exception: AppException | any,
-  ) {
-    const exceptionJson = exception.toJSON();
+  private _response(status: number, exception: any) {
     return {
       statusCode: status,
       timestamp: new Date().toISOString(),
-      path: request?.url,
-      method: request?.method,
-      params: request?.params,
-      query: request?.query,
-      exception: exceptionJson,
+      message: exception?.message,
+      error: exception?.name,
     };
   }
 }
