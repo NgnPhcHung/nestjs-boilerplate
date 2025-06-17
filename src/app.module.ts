@@ -12,6 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppRedisModule } from '@modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -21,8 +22,13 @@ import { AppService } from './app.service';
       driver: ApolloDriver,
       autoSchemaFile: 'src/schemas/schema.gql',
       graphiql: true,
-      context: ({ req, res }) => ({ req, res }), // this shit will handle a stuff related for throttle, exception filter, ...ettc
-      formatError(formattedError, _) {
+      context: ({ req, res }) => {
+        return {
+          req,
+          res,
+        };
+      },
+      formatError(formattedError) {
         return {
           message: formattedError.message,
           path: formattedError.path,
@@ -37,7 +43,7 @@ import { AppService } from './app.service';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      useFactory: () => ({
         errorMessage: 'Too many requests! Please try again later',
         throttlers: [
           {
@@ -49,7 +55,7 @@ import { AppService } from './app.service';
     }),
 
     ScheduleModule.forRoot(),
-
+    AppRedisModule,
     PostgresModule,
     AuthModule,
     UserModule,

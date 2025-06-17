@@ -1,17 +1,16 @@
-FROM node:23-alpine
+FROM node:20-alpine
 
 RUN corepack enable
 
 WORKDIR /app
 
-# COPY ./package.json ./pnpm-lock.yaml ./
-
-
-COPY . .
+COPY ./package.json ./pnpm-lock.yaml ./
 
 RUN pnpm install
 
+COPY . .
+
 EXPOSE 3001
 
-CMD ["pnpm", "start"]
+CMD ["pnpm", "start:dev"]
 

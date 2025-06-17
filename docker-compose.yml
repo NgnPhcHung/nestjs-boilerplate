@@ -14,7 +14,7 @@ services:
     ports:
       - ${DATABASE_PORT}:${DATABASE_PORT}
     env_file:
-      - path: ./.env
+      - ./.env
   
   redis:
     image: redis:7-alpine
@@ -41,9 +41,11 @@ services:
       DATABASE_NAME: ${DATABASE_NAME}
     depends_on:
       - postgres
+      - redis
     ports:
       - '${APP_PORT}:${APP_PORT}'
-   # command: sh -c 'pnpm install && pnpm start:dev'
+    volumes:
+      - .:/app
 
 volumes:
   pddata: {}

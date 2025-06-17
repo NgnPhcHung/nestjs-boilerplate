@@ -45,7 +45,7 @@ export class UserService {
         id: In(users.map((user) => user.id)),
       },
       {
-        lastSyncTime: new Date(Date.now()),
+        isSynced: false,
       },
     );
 

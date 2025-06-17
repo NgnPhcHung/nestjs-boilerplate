@@ -16,7 +16,7 @@ import { RedisService } from './redis.service';
           password: configService.get('REDIS_PASSWORD'),
           db: configService.get('REDIS_DB'),
           options: {
-            host: configService.get('REDIS_HOST'),
+            host: '0.0.0.0',
             port: configService.get('REDIS_PORT'),
           },
         });
