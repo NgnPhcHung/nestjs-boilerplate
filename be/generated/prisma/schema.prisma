@@ -1,0 +1,29 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  hash      String?  @db.VarChar(255)
+  username  String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  email     String?
+  firstname String?
+  lastname  String?
+  role      UserRole @default(USER)
+  isSynced  Boolean? @default(false) @map("is_synced")
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
