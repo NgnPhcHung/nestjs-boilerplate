@@ -11,13 +11,14 @@ import { RedisService } from './redis.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        console.log({
+        // console.log here is helpful to verify what's being passed
+        console.log('Redis Connection Config:', {
           type: 'single',
           password: configService.get('REDIS_PASSWORD'),
           db: configService.get('REDIS_DB'),
           options: {
-            host: '0.0.0.0',
-            port: configService.get('REDIS_PORT'),
+            host: configService.get('REDIS_HOST'), // This should be 'redis'
+            port: configService.get('REDIS_PORT'), // This should be 6379
           },
         });
 

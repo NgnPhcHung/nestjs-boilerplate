@@ -1,6 +1,6 @@
-import { UserRole } from '@consts';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEmail, IsEnum, MinLength } from 'class-validator';
+import { UserRole } from 'generated/prisma';
 
 @InputType()
 export class SignUpDto {

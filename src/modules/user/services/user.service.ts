@@ -1,38 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserRepository } from '../repositories/user.repository';
-import { FindOptionsWhere, In } from 'typeorm';
-import { SignInDto } from '@modules/auth/dtos/signin.dto';
-import { UserEntity } from '@entities/user.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { RedisService } from '@modules/redis/redis.service';
+import { PrismaService } from '@modules/prisma/prisma.service';
+import { SignUpDto } from '@modules/auth/dtos/signup.dto';
+import { Prisma, UserRole } from 'generated/prisma';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
-    private readonly userRepository: UserRepository,
     private readonly redisService: RedisService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  async findOneBy(findCondition: FindOptionsWhere<UserEntity>) {
-    return this.userRepository.findOneBy(findCondition);
+  async findOneBy(user: Prisma.UsersWhereInput) {
+    return this.prisma.users.findFirst({
+      where: user,
+    });
   }
 
   async findById(id: number) {
-    return this.userRepository.findById(id);
+    return this.prisma.users.findUnique({ where: { id } });
   }
 
-  async createUser(user: SignInDto) {
-    return this.userRepository.save(user);
+  async createUser(user: SignUpDto) {
+    user.role = UserRole.USER;
+    return this.prisma.users.create({ data: user });
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   async syncUsers() {
     this.logger.log('Syncing user...');
 
-    const users = await this.userRepository.findUsersForSync();
-    console.log({ users });
+    const users = await this.prisma.users.findMany({
+      where: { isSynced: false },
+    });
 
     if (!users.length) {
       this.logger.log('Does not have new user to sync, Sync complete');
@@ -40,15 +43,6 @@ export class UserService {
     }
 
     await this.redisService.addUsernames(users.map((user) => user.username));
-    await this.userRepository.update(
-      {
-        id: In(users.map((user) => user.id)),
-      },
-      {
-        isSynced: false,
-      },
-    );
-
     this.logger.log('Sync user completed');
   }
 }

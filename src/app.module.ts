@@ -1,6 +1,5 @@
 import { GqlThrottlerGuard } from '@guards/throttle.guard';
 import { AuthModule } from '@modules/auth/auth.module';
-import { PostgresModule } from '@modules/db/postgres.module';
 import { UserModule } from '@modules/user/user.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -13,6 +12,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppRedisModule } from '@modules/redis/redis.module';
+import { PrismaModule } from '@modules/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -56,9 +56,9 @@ import { AppRedisModule } from '@modules/redis/redis.module';
 
     ScheduleModule.forRoot(),
     AppRedisModule,
-    PostgresModule,
     AuthModule,
     UserModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [

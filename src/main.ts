@@ -1,19 +1,20 @@
 import 'tsconfig-paths/register';
 
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
+import { AppExceptionFilter } from '@utils/network/exception-filter';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ValidationPipe } from './pipes/validation.pipe';
-import helmet from 'helmet';
-import { AppExceptionFilter } from '@utils/network/exception-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const httpAdapter = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AppExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
 
   app.enableCors({ credentials: true });
+  app.use(cookieParser());
 
   app.use(
     helmet({

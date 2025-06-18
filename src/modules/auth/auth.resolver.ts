@@ -1,33 +1,49 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { SignUpDto } from './dtos/signup.dto';
-import { AuthService } from './services/auth.service';
 import { Public } from '@decorators/public';
-import { AuthResponse } from './models/auth-response.model';
+import { Res } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Response } from 'express';
 import { SignInDto } from './dtos/signin.dto';
+import { SignUpDto } from './dtos/signup.dto';
+import { AuthResponse } from './models/auth-response.model';
 import { UserModel } from './models/user.model';
-import { UserService } from '@modules/user/services/user.service';
-import { Throttle } from '@nestjs/throttler';
+import { AuthService } from './services/auth.service';
 
 @Resolver(() => UserModel)
-@Throttle({ default: { limit: 3, ttl: 60000 } })
 export class AuthResolver {
-  constructor(
-    private authService: AuthService,
-    private userService: UserService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @Public()
   @Mutation(() => AuthResponse)
-  async login(@Args('input') input: SignInDto): Promise<AuthResponse> {
-    return this.authService.login(input);
+  async login(
+    @Args('input') input: SignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    const { refreshToken, accessToken } = await this.authService.login(input);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: +process.env.REFRESH_EXPIRED_IN,
+      path: '/',
+    });
+    return { accessToken };
   }
 
   @Public()
   @Mutation(() => AuthResponse)
-  async register(@Args('input') input: SignUpDto): Promise<AuthResponse> {
-    const result = await this.authService.signUp(input);
-    console.log(result);
-    return result;
+  async register(
+    @Args('input') input: SignUpDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    const { refreshToken, accessToken } = await this.authService.login(input);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: +process.env.REFRESH_EXPIRED_IN,
+      path: '/',
+    });
+    return { accessToken };
   }
 
   @Query(() => String)

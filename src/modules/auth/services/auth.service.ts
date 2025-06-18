@@ -12,8 +12,8 @@ import crypto from 'node:crypto';
 import { SignInDto } from '../dtos/signin.dto';
 import { SignUpDto } from '../dtos/signup.dto';
 import { hashPassword } from '../utils/hash-password';
-import { UserEntity } from '@entities/user.entity';
 import { TrieService } from './trie/trie.service';
+import { Users } from 'generated/prisma';
 
 @Injectable()
 export class AuthService {
@@ -64,7 +64,7 @@ export class AuthService {
       +process.env.REFRESH_EXPIRED_IN,
     );
 
-    return { accessToken };
+    return { accessToken, refreshToken };
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
@@ -112,7 +112,7 @@ export class AuthService {
     return null;
   }
 
-  getAccessToken(user: UserEntity) {
+  getAccessToken(user: Users) {
     return this.jwtService.sign(
       { sub: { userId: user.id, role: user.role } },
       {
