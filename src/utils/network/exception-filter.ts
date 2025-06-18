@@ -3,13 +3,11 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
-  HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AppException } from './exception';
-type AnyClass<T = unknown> = new (...args: any[]) => T;
 
-@Catch()
+@Catch(AppException)
 export class AppExceptionFilter<T> implements ExceptionFilter {
   catch(exception: T, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -28,7 +26,6 @@ export class AppExceptionFilter<T> implements ExceptionFilter {
         );
       }
     }
-
     response.status(status).json(this._response(status, request, exception));
   }
 

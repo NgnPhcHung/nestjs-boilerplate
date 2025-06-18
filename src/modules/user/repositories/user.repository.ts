@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from 'src/entities/user.entity';
-import { DataSource, Repository, LessThan, IsNull } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UserRepository extends Repository<UserEntity> {
@@ -20,16 +20,13 @@ export class UserRepository extends Repository<UserEntity> {
     return this.find({
       where: [
         {
-          lastSyncTime: LessThan(new Date(Date.now())),
-        },
-        {
-          lastSyncTime: IsNull(),
+          isSynced: false,
         },
       ],
       select: {
         username: true,
         id: true,
-        lastSyncTime: true,
+        isSynced: true,
       },
     });
   }
