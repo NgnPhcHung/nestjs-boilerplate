@@ -1,9 +1,11 @@
 
 # TODO list
 - [x] Black list jwt
-- [ ] CORS 
+- [x] CORS 
 - [x] Rate Limiting 
 - [x] Find username and suggest new one (Trie)
+- [ ] Setup tokens
+- [ ] Setup realtime intergration
 
 # How to use 
 ## Setup env
@@ -14,14 +16,22 @@ cp .env.example .env
 ## Migration
 ### After setup source run
 ```bash
-pnpm migration:run 
+pnpm prisma migrate dev 
 ```
+
 ### After change entity
 ```bash
-pnpm migration:generate change-content
+pnpm primsa migrate dev --name change_content_message
 ```
-### Revert entity
+
+## Setup docker
+in root project run
 ```bash
-pnpm migration:revert
+
+# to review docker compose config again before 
+docker compose config
+
+docker compose up -d
 ```
+
 
