@@ -1,23 +1,29 @@
 import { Public } from '@decorators/public';
-import { Res } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Response } from 'express';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { GraphQLContext } from 'src/types/common';
 import { SignInDto } from './dtos/signin.dto';
 import { SignUpDto } from './dtos/signup.dto';
 import { AuthResponse } from './models/auth-response.model';
 import { UserModel } from './models/user.model';
 import { AuthService } from './services/auth.service';
+import { Logger } from '@nestjs/common';
 
 @Resolver(() => UserModel)
 export class AuthResolver {
+  private readonly logger = new Logger(AuthResolver.name);
+
   constructor(private authService: AuthService) {}
 
   @Public()
   @Mutation(() => AuthResponse)
   async login(
     @Args('input') input: SignInDto,
-    @Res({ passthrough: true }) res: Response,
+    @Context() context: GraphQLContext,
   ): Promise<AuthResponse> {
+    this.logger.log(
+      `Calling ${this.login.name} with body ${JSON.stringify(input)}`,
+    );
+    const { res } = context;
     const { refreshToken, accessToken } = await this.authService.login(input);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -33,9 +39,10 @@ export class AuthResolver {
   @Mutation(() => AuthResponse)
   async register(
     @Args('input') input: SignUpDto,
-    @Res({ passthrough: true }) res: Response,
+    @Context() context: GraphQLContext,
   ): Promise<AuthResponse> {
-    const { refreshToken, accessToken } = await this.authService.login(input);
+    const { refreshToken, accessToken } = await this.authService.signUp(input);
+    const { res } = context;
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -43,6 +50,7 @@ export class AuthResolver {
       maxAge: +process.env.REFRESH_EXPIRED_IN,
       path: '/',
     });
+
     return { accessToken };
   }
 

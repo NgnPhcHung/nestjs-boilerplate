@@ -13,7 +13,10 @@ async function bootstrap() {
   app.useGlobalFilters(new AppExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
 
-  app.enableCors({ credentials: true });
+  app.enableCors({
+    origin: ['http://localhost:3000/', 'http://localhost:3000'],
+    credentials: true,
+  });
   app.use(cookieParser());
 
   app.use(

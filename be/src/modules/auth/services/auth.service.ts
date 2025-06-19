@@ -43,12 +43,14 @@ export class AuthService {
     );
     return {
       accessToken,
+      refreshToken,
     };
   }
 
   async login(payload: SignInDto) {
-    const { email, password } = payload;
-    const user = await this.validateUser(email, password);
+    const { username, password } = payload;
+    const user = await this.validateUser(username, password);
+
     if (!user) throw new AppForbiddenException(ERROR_CODE.INVALID_CREDENTIALS);
 
     const accessToken = this.getAccessToken(user);
@@ -102,8 +104,8 @@ export class AuthService {
     await this.redisService.deleteKey(`refresh:${userId}`);
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.userService.findOneBy({ email });
+  async validateUser(username: string, password: string) {
+    const user = await this.userService.findOneBy({ username });
 
     if (!user) return null;
 
@@ -112,7 +114,7 @@ export class AuthService {
     return null;
   }
 
-  getAccessToken(user: Users) {
+  private getAccessToken(user: Users) {
     return this.jwtService.sign(
       { sub: { userId: user.id, role: user.role } },
       {
@@ -123,7 +125,7 @@ export class AuthService {
     );
   }
 
-  generateRefreshToken() {
+  private generateRefreshToken() {
     const token = crypto.randomBytes(64).toString('hex');
     const expiresAt = new Date(Date.now() + process.env.REFRESH_EXPIRED_IN);
 

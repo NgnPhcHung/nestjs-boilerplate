@@ -42,31 +42,31 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    env_file:
-      - ./.env
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: ${BACKEND_CONTAINER_NAME}
-    restart: unless-stopped
-    environment:
-      DATABASE_HOST: postgres
-      DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_USER: ${DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_NAME: ${DATABASE_NAME}
-      REDIS_HOST: ${REDIS_HOST} # This should correctly resolve to 'redis'
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_DB: ${REDIS_DB}
-    depends_on: # IMPORTANT: Use the dictionary syntax with 'condition: service_healthy'
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - '${APP_PORT}:${APP_PORT}'
+  # backend:
+  #   env_file:
+  #     - ./.env
+  #   build:
+  #     context: .
+  #     # dockerfile: Dockerfile
+  #   container_name: ${BACKEND_CONTAINER_NAME}
+  #   restart: unless-stopped
+  #   environment:
+  #     DATABASE_HOST: postgres
+  #     DATABASE_PORT: ${DATABASE_PORT}
+  #     DATABASE_USER: ${DATABASE_USER}
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  #     DATABASE_NAME: ${DATABASE_NAME}
+  #     REDIS_HOST: ${REDIS_HOST} # This should correctly resolve to 'redis'
+  #     REDIS_PORT: ${REDIS_PORT}
+  #     REDIS_PASSWORD: ${REDIS_PASSWORD}
+  #     REDIS_DB: ${REDIS_DB}
+  #   depends_on: # IMPORTANT: Use the dictionary syntax with 'condition: service_healthy'
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   ports:
+  #     - '${APP_PORT}:${APP_PORT}'
     # If you still have a 'volumes: .:/app' line here, and your package.json isn't at the project root,
     # it could be causing problems with the application starting correctly *within* the container.
     # We addressed this in a previous discussion. For now, focus on the Redis connection.

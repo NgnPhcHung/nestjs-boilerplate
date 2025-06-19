@@ -137,7 +137,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/nguyenphuchung/Documents/personal_project/nestjs-boilerplate/generated/prisma",
+      "value": "/Users/nguyenphuchung/Documents/personal_project/meeting_area/be/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -155,7 +155,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/nguyenphuchung/Documents/personal_project/nestjs-boilerplate/prisma/schema.prisma",
+    "sourceFilePath": "/Users/nguyenphuchung/Documents/personal_project/meeting_area/be/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
