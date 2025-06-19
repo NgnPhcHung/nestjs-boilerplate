@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "next": "14.2.19",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-hook-form": "^7.58.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

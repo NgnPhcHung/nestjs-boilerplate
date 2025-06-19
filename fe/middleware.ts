@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ["/login", "/register", "/api/auth/login"];
+  const publicPaths = ["/login", "/register"];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
   if (!accessToken && !isPublicPath) {
     if (pathname.startsWith("/api")) {
