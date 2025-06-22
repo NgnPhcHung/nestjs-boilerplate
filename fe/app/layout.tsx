@@ -4,6 +4,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
 import { ThemeProvider } from "./(components)/ThemeProvider";
 import { ApolloWrapper } from "@/libs/apolloWrapper";
+import { cookies } from "next/headers";
 
 const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -20,6 +21,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get("authorization")?.value;
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -41,7 +45,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <AntdRegistry>
           <ThemeProvider>
-            <ApolloWrapper>{children}</ApolloWrapper>
+            <ApolloWrapper token={accessToken}>{children}</ApolloWrapper>
           </ThemeProvider>
         </AntdRegistry>
       </body>

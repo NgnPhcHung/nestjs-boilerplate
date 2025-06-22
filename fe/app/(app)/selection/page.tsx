@@ -1,16 +1,18 @@
 "use client";
 
-import { Button, Flex } from "antd";
-import { useRouter } from "next/navigation";
+import { Selection } from "@/app/(components)/Selection";
+import { useSuspenseQuery } from "@apollo/client";
+
+import gql from "graphql-tag";
+const PING = gql`
+  query Ping {
+    ping
+  }
+`;
 
 export default function SelectionPage() {
-  const router = useRouter();
+  const { data, error } = useSuspenseQuery(PING);
+  console.log({ data, error });
 
-  return (
-    <Flex>
-      <Button onClick={() => router.push("playground")}>
-        Go to playground
-      </Button>
-    </Flex>
-  );
+  return <Selection />;
 }

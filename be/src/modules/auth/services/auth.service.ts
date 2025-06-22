@@ -81,7 +81,6 @@ export class AuthService {
 
     const isMatch = await bcrypt.compare(refreshToken, hashedRefreshToken);
 
-    console.log({ refreshToken, hashedRefreshToken });
     if (!isMatch) throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
 
     const accessToken = this.getAccessToken(user);

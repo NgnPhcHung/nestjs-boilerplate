@@ -8,12 +8,10 @@ import { UserModel } from './models/user.model';
 import { AuthService } from './services/auth.service';
 import { Logger } from '@nestjs/common';
 import { CurrentUser } from '@decorators/current-user';
-import { Users } from 'generated/prisma';
 
 @Resolver(() => UserModel)
 export class AuthResolver {
   private readonly logger = new Logger(AuthResolver.name);
-
   constructor(private authService: AuthService) {}
 
   @Public()
@@ -74,6 +72,7 @@ export class AuthResolver {
 
   @Query(() => String)
   ping() {
+    this.logger.log(`Calling ${this.ping.name} `);
     return 'pong';
   }
 }

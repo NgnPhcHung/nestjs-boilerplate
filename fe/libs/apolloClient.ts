@@ -18,14 +18,15 @@ export const { getClient } = registerApolloClient(() => {
     ({ graphQLErrors, networkError, operation, forward }) => {
       let finalErrorToPropagate: Error | null = null;
 
+      console.log({ graphQLErrors, networkError, operation, forward });
+
       if (graphQLErrors) {
         for (let err of graphQLErrors) {
           const extensions = err.extensions as GraphQLExtensions | undefined;
           const outerExceptionWrapper = extensions?.exception;
           const innerServerExceptionDetails = outerExceptionWrapper?.exception;
 
-          if (innerServerExceptionDetails?.statusCode === 401) {
-          }
+          console.log(extensions);
 
           if (innerServerExceptionDetails) {
             finalErrorToPropagate = new GraphqlCustomError(
