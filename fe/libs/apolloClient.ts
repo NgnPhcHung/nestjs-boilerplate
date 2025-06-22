@@ -24,12 +24,15 @@ export const { getClient } = registerApolloClient(() => {
           const outerExceptionWrapper = extensions?.exception;
           const innerServerExceptionDetails = outerExceptionWrapper?.exception;
 
+          if (innerServerExceptionDetails?.statusCode === 401) {
+          }
+
           if (innerServerExceptionDetails) {
             finalErrorToPropagate = new GraphqlCustomError(
-              innerServerExceptionDetails, // Pass the innermost details
-              err.message, // Original GraphQL error message
+              innerServerExceptionDetails,
+              err.message,
             );
-            break; // Stop after handling the first detailed GraphQL error
+            break;
           }
         }
 

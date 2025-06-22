@@ -13,6 +13,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppRedisModule } from '@modules/redis/redis.module';
 import { PrismaModule } from '@modules/prisma/prisma.module';
+import { AccessTokenBlacklistGuard } from '@guards/blacklist.guard';
+import { SocketModule } from '@modules/socket/socket.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -59,6 +62,8 @@ import { PrismaModule } from '@modules/prisma/prisma.module';
     AuthModule,
     UserModule,
     PrismaModule,
+    SocketModule,
+    JwtModule.register({}),
   ],
   controllers: [AppController],
   providers: [
@@ -67,7 +72,7 @@ import { PrismaModule } from '@modules/prisma/prisma.module';
       provide: APP_GUARD,
       useClass: GqlThrottlerGuard,
     },
-    // { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
+    { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
   ],
 })
 export class AppModule {}

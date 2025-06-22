@@ -13,6 +13,7 @@
     "@apollo/client": "^3.13.8",
     "@apollo/client-integration-nextjs": "^0.12.2",
     "@apollo/experimental-nextjs-app-support": "^0.12.2",
+    "@multiavatar/multiavatar": "^1.0.7",
     "@types/jsonwebtoken": "^9.0.9",
     "antd": "^5.25.4",
     "bcryptjs": "^3.0.2",
@@ -20,9 +21,11 @@
     "graphql-tag": "^2.12.6",
     "jsonwebtoken": "^9.0.2",
     "next": "14.2.19",
+    "pixi.js": "^8.10.1",
     "react": "^18",
     "react-dom": "^18",
-    "react-hook-form": "^7.58.1"
+    "react-hook-form": "^7.58.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

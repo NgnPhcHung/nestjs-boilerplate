@@ -7,6 +7,8 @@ import { AuthResponse } from './models/auth-response.model';
 import { UserModel } from './models/user.model';
 import { AuthService } from './services/auth.service';
 import { Logger } from '@nestjs/common';
+import { CurrentUser } from '@decorators/current-user';
+import { Users } from 'generated/prisma';
 
 @Resolver(() => UserModel)
 export class AuthResolver {
@@ -25,7 +27,7 @@ export class AuthResolver {
     );
     const { res } = context;
     const { refreshToken, accessToken } = await this.authService.login(input);
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('x-refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -43,7 +45,7 @@ export class AuthResolver {
   ): Promise<AuthResponse> {
     const { refreshToken, accessToken } = await this.authService.signUp(input);
     const { res } = context;
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('x-refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -51,6 +53,22 @@ export class AuthResolver {
       path: '/',
     });
 
+    return { accessToken };
+  }
+
+  @Public()
+  @Mutation(() => AuthResponse)
+  async refreshAccessToken(
+    @Context() context: GraphQLContext,
+    @CurrentUser() user: any,
+  ) {
+    const { req } = context;
+
+    const refreshToken = req.cookies['x-refreshToken'];
+    const accessToken = await this.authService.refreshTokens(
+      user,
+      refreshToken,
+    );
     return { accessToken };
   }
 

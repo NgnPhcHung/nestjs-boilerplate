@@ -57,12 +57,11 @@ export class AuthService {
 
     const { token: refreshToken } = this.generateRefreshToken();
 
-    const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+    const hash = await bcrypt.hash(refreshToken, 10);
 
     await this.redisService.setData(
       `refresh:${user.id}`,
-      hashedRefreshToken,
+      hash,
       +process.env.REFRESH_EXPIRED_IN,
     );
 
@@ -79,23 +78,14 @@ export class AuthService {
     if (!hashedRefreshToken) {
       throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
     }
+
     const isMatch = await bcrypt.compare(refreshToken, hashedRefreshToken);
 
+    console.log({ refreshToken, hashedRefreshToken });
     if (!isMatch) throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
 
-    await this.redisService.deleteData(`refresh:${user.id}`);
-    const newRefreshToken = this.generateRefreshToken();
-    const hashedNewRefreshToken = await bcrypt.hash(newRefreshToken.token, 10);
-    await this.redisService.setData(
-      `refresh:${user.id}`,
-      hashedNewRefreshToken,
-      +process.env.REFRESH_EXPIRED_IN,
-    );
-    const newAccessToken = this.getAccessToken(user);
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken.token,
-    };
+    const accessToken = this.getAccessToken(user);
+    return accessToken;
   }
 
   async logout(userId: number, token: string) {

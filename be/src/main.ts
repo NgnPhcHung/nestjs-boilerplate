@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ValidationPipe } from './pipes/validation.pipe';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,7 @@ async function bootstrap() {
     credentials: true,
   });
   app.use(cookieParser());
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   app.use(
     helmet({

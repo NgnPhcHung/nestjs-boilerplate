@@ -33,7 +33,7 @@ export async function userLogin(body: LoginDto) {
     const expiresInSeconds = 15 * 60;
 
     const cookieStore = cookies();
-    cookieStore.set("access_token", accessToken, {
+    cookieStore.set("authorization", `Bearer ${accessToken}`, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

@@ -16,6 +16,7 @@ export default function LoginPage() {
     const loginData = localStorage.getItem("user_login");
     if (loginData) {
       form.setFieldsValue(JSON.parse(loginData) as LoginDto);
+      console.log(JSON.parse(loginData) as LoginDto);
     }
     return () => {
       return;
@@ -24,8 +25,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (formData: LoginForm) => {
     try {
-      const result = await userLogin(formData);
-      console.log({ result });
+      const result = await userLogin({
+        username: formData.username,
+        password: formData.password,
+      });
 
       if (result.success) {
         formData.remember &&
@@ -40,7 +43,7 @@ export default function LoginPage() {
 
   return (
     <Flex gap="middle" vertical align="center" justify="center">
-      <Form onFinish={handleSubmit}>
+      <Form onFinish={handleSubmit} form={form}>
         <Form.Item
           label="Username"
           name="username"

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get("access_token")?.value;
+  const accessToken = request.cookies.get("authorization")?.value;
   const { pathname } = request.nextUrl;
 
   const publicPaths = ["/login", "/register"];

@@ -20,6 +20,7 @@ type Query {
 type Mutation {
   login(input: SignInDto!): AuthResponse!
   register(input: SignUpDto!): AuthResponse!
+  refreshAccessToken: AuthResponse!
 }
 
 input SignInDto {
