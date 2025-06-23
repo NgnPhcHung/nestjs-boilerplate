@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 
 type Player = {
-  x: number;
-  y: number;
+  avatarImg: string;
+  position: {
+    x: number;
+    y: number;
+  };
 };
 
 export default function Game() {
@@ -15,9 +18,9 @@ export default function Game() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  const playerPosRef = useRef<{ x: number; y: number }>({ x: 190, y: 190 });
-
+  const playerPosRef = useRef<{ x: number; y: number }>({ x: 100, y: 100 });
   const pixiRef = useRef<any>(null);
+
   useEffect(() => {
     const socket = io("http://localhost:3001");
     socketRef.current = socket;
@@ -27,24 +30,19 @@ export default function Game() {
     });
 
     socket.on("init", async (players: Record<string, Player>) => {
-      const entries = await Promise.all(
-        Object.keys(players).map(async (id) => [
-          id,
-          (await randomUserAva()).src,
-        ]),
-      );
-      const avatars = Object.fromEntries(entries);
-
       if (!containerRef.current) return;
-      socket.on("moved", ({ id, x, y }) => {
+      socket.on("moved", (data) => {
+        console.log({ data });
+
+        const {
+          id,
+          position: { x, y },
+        } = data;
+
         pixiRef.current?.updatePlayerPosition(id, x, y);
       });
       if (containerRef.current) {
-        const pixiInstance = await setupPixi(
-          containerRef.current,
-          players,
-          avatars,
-        );
+        const pixiInstance = await setupPixi(containerRef.current, players);
         pixiRef.current = pixiInstance;
         containerRef.current.focus();
       }
@@ -83,14 +81,14 @@ export default function Game() {
   const move = (dx: number, dy: number) => {
     const id = myId;
     const socket = socketRef.current;
+    console.log({ socket });
+
     if (!id || !socket) return;
-
     const gameSpace = document.getElementById("game-space");
-
     const current = playerPosRef.current;
 
+    // const next = { x: current.x + dx, y: current.y + dy };
     const next = { x: current.x + dx, y: current.y + dy };
-
     if (
       gameSpace &&
       next.x > 0 &&
@@ -98,8 +96,9 @@ export default function Game() {
       next.y > 0 &&
       next.y < gameSpace.clientHeight
     ) {
+      const emitBody = { position: next };
       playerPosRef.current = next;
-      socket.emit("move", next);
+      socket.emit("move", emitBody);
       pixiRef.current?.updatePlayerPosition(id, next.x, next.y);
     }
   };

@@ -1,11 +1,16 @@
 import { Application, Container, Sprite, Texture } from "pixi.js";
 
-type Player = { x: number; y: number };
+type Player = {
+  avatarImg: string;
+  position: {
+    x: number;
+    y: number;
+  };
+};
 
 export const setupPixi = async (
   containerEl: HTMLDivElement,
   players: Record<string, Player>,
-  avatars: Record<string, string>,
 ) => {
   const app = new Application();
   await app.init({
@@ -14,7 +19,7 @@ export const setupPixi = async (
     width: 900,
     height: 640,
   });
-  app.canvas.style.borderRadius = "16px"; // hoặc "1rem", "50%" nếu muốn tròn
+  app.canvas.style.borderRadius = "16px";
   app.canvas.style.width = "900px";
   app.canvas.style.height = "640px";
   app.canvas.id = "game-space";
@@ -28,17 +33,16 @@ export const setupPixi = async (
 
   for (const id in players) {
     const img = new Image();
-    img.src = avatars[id];
+    img.src = players[id].avatarImg;
     await new Promise((r) => (img.onload = r));
     const tex = Texture.from(img);
     const sprite = new Sprite(tex);
-    sprite.x = players[id].x;
-    sprite.y = players[id].y;
+    sprite.x = players[id].position.x;
+    sprite.y = players[id].position.y;
     container.addChild(sprite);
     sprites[id] = sprite;
   }
 
-  // store for external updates if needed
   return {
     updatePlayerPosition(id: string, x: number, y: number) {
       if (sprites[id]) {

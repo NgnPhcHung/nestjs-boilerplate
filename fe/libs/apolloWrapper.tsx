@@ -1,6 +1,6 @@
 "use client";
 
-import { ApolloLink, HttpLink } from "@apollo/client";
+import { ApolloLink } from "@apollo/client";
 import {
   ApolloClient,
   ApolloNextAppProvider,
@@ -9,18 +9,15 @@ import {
 } from "@apollo/client-integration-nextjs";
 import { setContext } from "@apollo/client/link/context";
 import { PropsWithChildren } from "react";
+import { graphQLError } from "./graphqlError";
+import { graphqlHttpLink } from "./graphqlHttpLink";
 
 function makeClient(token?: string) {
-  const httpLink = new HttpLink({
-    uri: "http://localhost:3001/graphql",
-    fetchOptions: { cache: "no-store" },
-  });
-
   const authLink = setContext((_, { headers }) => {
     return {
       headers: {
         ...headers,
-        authorization: token ? `Bearer ${token}` : "",
+        authorization: token ? token : "",
       },
     };
   });
@@ -34,9 +31,9 @@ function makeClient(token?: string) {
               stripDefer: true,
             }),
             authLink,
-            httpLink,
+            graphqlHttpLink,
           ])
-        : ApolloLink.from([authLink, httpLink]),
+        : ApolloLink.from([graphQLError, authLink, graphqlHttpLink]),
   });
 }
 

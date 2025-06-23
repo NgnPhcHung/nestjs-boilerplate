@@ -39,8 +39,8 @@ export class AccessTokenBlacklistGuard implements CanActivate {
     if (isBlacklisted) {
       throw new AppUnauthorizedRequest(ERROR_CODE.BLACKLISTED_TOKEN);
     }
+
     const test = this.jwtService.decode(token);
-    console.log('test', test);
     return true;
   }
 

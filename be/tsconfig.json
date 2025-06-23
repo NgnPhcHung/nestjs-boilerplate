@@ -48,11 +48,11 @@
       "@utils": [
         "./src/utils"
       ],
-      "@entities/*": [
-        "./src/entities/*"
+      "@types/*": [
+        "./src/types/*"
       ],
-      "@entities": [
-        "./src/entities"
+      "@types": [
+        "./src/types"
       ],
       "@utils/*": [
         "./src/utils/*"

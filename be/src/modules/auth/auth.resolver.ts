@@ -1,13 +1,13 @@
+import { CurrentUser } from '@decorators/current-user';
 import { Public } from '@decorators/public';
+import { Logger } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { GraphQLContext } from 'src/types/common';
 import { SignInDto } from './dtos/signin.dto';
 import { SignUpDto } from './dtos/signup.dto';
 import { AuthResponse } from './models/auth-response.model';
 import { UserModel } from './models/user.model';
 import { AuthService } from './services/auth.service';
-import { Logger } from '@nestjs/common';
-import { CurrentUser } from '@decorators/current-user';
+import { GraphQLContext } from '@types';
 
 @Resolver(() => UserModel)
 export class AuthResolver {

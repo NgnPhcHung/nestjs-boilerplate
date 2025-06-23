@@ -23,6 +23,7 @@ import { JwtModule } from '@nestjs/jwt';
     CacheModule.register(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+
       autoSchemaFile: 'src/schemas/schema.gql',
       graphiql: true,
       context: ({ req, res }) => {
@@ -50,7 +51,7 @@ import { JwtModule } from '@nestjs/jwt';
         errorMessage: 'Too many requests! Please try again later',
         throttlers: [
           {
-            limit: 5,
+            limit: 10,
             ttl: 1000,
           },
         ],
