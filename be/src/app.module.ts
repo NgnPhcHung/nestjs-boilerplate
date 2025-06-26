@@ -14,8 +14,8 @@ import { AppService } from './app.service';
 import { AppRedisModule } from '@modules/redis/redis.module';
 import { PrismaModule } from '@modules/prisma/prisma.module';
 import { AccessTokenBlacklistGuard } from '@guards/blacklist.guard';
-import { SocketModule } from '@modules/socket/socket.module';
 import { JwtModule } from '@nestjs/jwt';
+import { PlaygroundModule } from '@modules/playground/playground.module';
 
 @Module({
   imports: [
@@ -23,7 +23,11 @@ import { JwtModule } from '@nestjs/jwt';
     CacheModule.register(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-
+      installSubscriptionHandlers: true,
+      subscriptions: {
+        'graphql-ws': true,
+        'subscriptions-transport-ws': true,
+      },
       autoSchemaFile: 'src/schemas/schema.gql',
       graphiql: true,
       context: ({ req, res }) => {
@@ -63,17 +67,17 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     UserModule,
     PrismaModule,
-    SocketModule,
     JwtModule.register({}),
+    PlaygroundModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: GqlThrottlerGuard,
-    },
-    { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: GqlThrottlerGuard,
+    // },
+    // { provide: APP_GUARD, useClass: AccessTokenBlacklistGuard },
   ],
 })
 export class AppModule {}

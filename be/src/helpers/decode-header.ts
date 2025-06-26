@@ -1,6 +1,6 @@
-import { UserRole } from '@consts';
 import { ERROR_CODE } from '@consts/error-code';
 import { AppUnauthorizedRequest } from '@utils/network/exception';
+import { UserRole } from 'generated/prisma';
 import * as jwt from 'jsonwebtoken';
 
 interface DecodeHeader {

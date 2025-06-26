@@ -1,27 +1,20 @@
+import { UserPlayground } from "@/app/(components)/model/playgroundModel";
 import { Application, Container, Sprite, Texture } from "pixi.js";
-
-type Player = {
-  avatarImg: string;
-  position: {
-    x: number;
-    y: number;
-  };
-};
 
 export const setupPixi = async (
   containerEl: HTMLDivElement,
-  players: Record<string, Player>,
+  players: UserPlayground[],
 ) => {
   const app = new Application();
   await app.init({
     background: "#202020",
     resizeTo: containerEl,
-    width: 900,
-    height: 640,
+    width: containerEl.offsetWidth,
+    height: containerEl.offsetHeight,
   });
   app.canvas.style.borderRadius = "16px";
-  app.canvas.style.width = "900px";
-  app.canvas.style.height = "640px";
+  app.canvas.style.width = `${containerEl.offsetWidth}px`;
+  app.canvas.style.height = `${containerEl.offsetHeight}px`;
   app.canvas.id = "game-space";
 
   containerEl.appendChild(app.canvas);
@@ -31,16 +24,18 @@ export const setupPixi = async (
 
   const sprites: Record<string, Sprite> = {};
 
-  for (const id in players) {
+  for (const player of players) {
+    console.log("player", player);
+
     const img = new Image();
-    img.src = players[id].avatarImg;
+    img.src = player.avatarImg;
     await new Promise((r) => (img.onload = r));
     const tex = Texture.from(img);
     const sprite = new Sprite(tex);
-    sprite.x = players[id].position.x;
-    sprite.y = players[id].position.y;
+    sprite.x = player.position.x;
+    sprite.y = player.position.y;
     container.addChild(sprite);
-    sprites[id] = sprite;
+    sprites[player.userId] = sprite;
   }
 
   return {
@@ -57,6 +52,12 @@ export const setupPixi = async (
       }
     },
     addPlayer: async (id: string, avatarUrl: string, x: number, y: number) => {
+      if (sprites[id]) {
+        console.warn(
+          `Player with ID ${id} already exists. Not adding duplicate.`,
+        );
+        return;
+      }
       const img = new Image();
       img.src = avatarUrl;
       await new Promise((r) => (img.onload = r));

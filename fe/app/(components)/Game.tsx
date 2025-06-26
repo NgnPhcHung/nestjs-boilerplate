@@ -1,62 +1,176 @@
 "use client";
 
 import { setupPixi } from "@/game/initGame";
-import { randomUserAva } from "@/game/loadAvata";
-import { useEffect, useRef, useState } from "react";
-import io, { Socket } from "socket.io-client";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
+import gql from "graphql-tag";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { UserPlayground } from "./model/playgroundModel";
+import { getMeClient } from "@/utils/getMeClient";
 
-type Player = {
-  avatarImg: string;
-  position: {
-    x: number;
-    y: number;
-  };
-};
+const USER_JOIN_MUTATION = gql`
+  mutation UserJoinPlayground($userId: Int!) {
+    userJoinPlayground(userId: $userId) {
+      userId
+      avatarImg
+      position {
+        x
+        y
+      }
+    }
+  }
+`;
+
+const LIST_PLAYER = gql`
+  query players {
+    players {
+      userId
+      position {
+        x
+        y
+      }
+      avatarImg
+    }
+  }
+`;
+
+const USER_JOINED_SUBSCRIPTION = gql`
+  subscription UserJoined {
+    userJoined {
+      userId
+    }
+  }
+`;
+
+const USER_MOVE_SUBSCRIPTION = gql`
+  subscription UserMoved {
+    userMoved {
+      userId
+      position {
+        x
+        y
+      }
+    }
+  }
+`;
+const PLAYER_FIELDS = gql`
+  fragment PlayerFields on Player {
+    userId
+    avatarImg
+    position {
+      x
+      y
+    }
+  }
+`;
+const UPDATE_PLAYER_POSITION_MUTATION = gql`
+  mutation UpdatePlayerPosition($userId: Int!, $x: Float!, $y: Float!) {
+    updatePlayerPosition(userId: $userId, x: $x, y: $y) {
+      ...PlayerFields
+    }
+  }
+  ${PLAYER_FIELDS}
+`;
+interface UserJoinedSubscriptionData {
+  userJoined: UserPlayground;
+}
 
 export default function Game() {
-  const [myId, setMyId] = useState<string | null>(null);
+  const user = getMeClient();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
   const playerPosRef = useRef<{ x: number; y: number }>({ x: 100, y: 100 });
   const pixiRef = useRef<any>(null);
+  const [joinedAppUsers, setJoinedAppUsers] = useState<number[]>([]);
+  const { data: dataPlayers, loading: dataPlayersLoading } = useQuery<{
+    players: UserPlayground[];
+  }>(LIST_PLAYER);
+
+  const [players, setPlayers] = useState<UserPlayground[]>();
+
+  const [userJoinPlayground] = useMutation(USER_JOIN_MUTATION);
+  const [updatePlayerPosition] = useMutation(UPDATE_PLAYER_POSITION_MUTATION);
+
+  useSubscription<UserJoinedSubscriptionData>(USER_JOINED_SUBSCRIPTION, {
+    onData: ({ data: { data } }) => {
+      if (data && data.userJoined) {
+        setJoinedAppUsers((prev) => {
+          if (!prev.includes(data.userJoined.userId)) {
+            return [...prev, data.userJoined.userId];
+          }
+          return prev;
+        });
+      }
+    },
+    onError: (err) => {
+      console.error("GraphQL Subscription (User Join) error:", err.message);
+    },
+  });
+
+  useSubscription(USER_MOVE_SUBSCRIPTION, {
+    onData: ({ data }) => {
+      console.log({ data });
+
+      const movedPlayer = data.data?.userMoved;
+      if (movedPlayer) {
+        setPlayers((prev) =>
+          prev?.map((player) =>
+            player.userId === movedPlayer.id
+              ? { ...player, position: movedPlayer.position }
+              : player,
+          ),
+        );
+
+        if (movedPlayer.userId === user.userId) {
+          playerPosRef.current = {
+            x: movedPlayer.position.x,
+            y: movedPlayer.position.y,
+          };
+        }
+
+        pixiRef.current?.updatePlayerPosition(
+          movedPlayer.userId,
+          movedPlayer.position.x,
+          movedPlayer.position.y,
+        );
+      }
+    },
+    onError: (err) => {
+      console.error("GraphQL Subscription (User Move) error:", err.message);
+    },
+  });
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
-    socketRef.current = socket;
+    const doJoin = async () => {
+      try {
+        const res = await userJoinPlayground({
+          variables: { userId: user.userId },
+        });
 
-    socket.on("connect", () => {
-      setMyId(socket.id || null);
-    });
-
-    socket.on("init", async (players: Record<string, Player>) => {
-      if (!containerRef.current) return;
-      socket.on("moved", (data) => {
-        console.log({ data });
-
-        const {
-          id,
-          position: { x, y },
-        } = data;
-
-        pixiRef.current?.updatePlayerPosition(id, x, y);
-      });
-      if (containerRef.current) {
-        const pixiInstance = await setupPixi(containerRef.current, players);
-        pixiRef.current = pixiInstance;
-        containerRef.current.focus();
+        if (res?.data?.userJoinPlayground && !dataPlayersLoading) {
+          const joinedUser: UserPlayground = res.data.userJoinPlayground;
+          const {
+            position: { x, y },
+          } = joinedUser;
+          pixiRef.current?.updatePlayerPosition(user.userId, x, y);
+          if (containerRef.current) {
+            const pixiInstance = await setupPixi(
+              containerRef.current,
+              dataPlayers?.players!,
+            );
+            pixiRef.current = pixiInstance;
+            containerRef.current.focus();
+          }
+        } else {
+          console.warn("User join mutation returned no data");
+        }
+      } catch (err) {
+        console.error("User join mutation error:", err);
       }
-
-      socket.on("player_left", (id: string) => {
-        pixiRef.current?.removePlayer(id);
-      });
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
     };
-  }, []);
+    if (!containerRef.current) return;
+
+    doJoin();
+  }, [user.userId, userJoinPlayground, dataPlayersLoading, joinedAppUsers]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -76,32 +190,51 @@ export default function Game() {
     return () => {
       el.removeEventListener("keydown", handleKey);
     };
-  }, [myId]);
+  }, []);
 
-  const move = (dx: number, dy: number) => {
-    const id = myId;
-    const socket = socketRef.current;
-    console.log({ socket });
-
-    if (!id || !socket) return;
-    const gameSpace = document.getElementById("game-space");
-    const current = playerPosRef.current;
-
-    // const next = { x: current.x + dx, y: current.y + dy };
-    const next = { x: current.x + dx, y: current.y + dy };
-    if (
-      gameSpace &&
-      next.x > 0 &&
-      next.x < gameSpace.clientWidth &&
-      next.y > 0 &&
-      next.y < gameSpace.clientHeight
-    ) {
-      const emitBody = { position: next };
-      playerPosRef.current = next;
-      socket.emit("move", emitBody);
-      pixiRef.current?.updatePlayerPosition(id, next.x, next.y);
+  useEffect(() => {
+    if (dataPlayers?.players) {
+      const foundMe = dataPlayers.players.find((p) => p.userId === user.userId);
+      if (foundMe) {
+        playerPosRef.current = {
+          x: foundMe.position.x,
+          y: foundMe.position.y,
+        };
+      }
+      setPlayers(dataPlayers.players);
     }
-  };
+  }, [dataPlayers?.players]);
+
+  const move = useCallback(
+    (x: number, y: number) => {
+      const gameSpace = document.getElementById("game-space");
+
+      const currentPos = playerPosRef.current;
+      let dx = currentPos.x + x;
+      let dy = currentPos.y + y;
+      console.log(dx, dy);
+
+      if (
+        gameSpace &&
+        dx > 0 &&
+        dx < gameSpace.clientWidth &&
+        dy > 0 &&
+        dy < gameSpace.clientHeight
+      ) {
+        updatePlayerPosition({
+          variables: {
+            userId: user.userId,
+            x: dx,
+            y: dy,
+          },
+        });
+        playerPosRef.current = { x: dx, y: dy };
+
+        pixiRef.current?.updatePlayerPosition(user.userId, dx, dy);
+      }
+    },
+    [players],
+  );
 
   return (
     <div

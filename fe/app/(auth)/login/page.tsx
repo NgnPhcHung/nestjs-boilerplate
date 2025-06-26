@@ -31,8 +31,11 @@ export default function LoginPage() {
       });
 
       if (result.success) {
+        console.log({ result });
+
         formData.remember &&
           localStorage.setItem("user_login", JSON.stringify(formData));
+        localStorage.setItem("user", JSON.stringify(result.data));
         message.success(" Login successfully, navigating to app!");
         router.push("/");
       }

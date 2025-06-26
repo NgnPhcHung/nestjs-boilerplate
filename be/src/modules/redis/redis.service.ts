@@ -58,16 +58,45 @@ export class RedisService {
     return result;
   }
 
+  async getHashKey<T>(hashKey: string, key: string): Promise<T | undefined> {
+    const keyName = `room:list:${hashKey}`;
+    const value = await this.redis.hget(keyName, key);
+    if (!!value) return JSON.parse(value) as T;
+    return null;
+  }
+
   async pushToList(key: string, value: any) {
-    await this.redis.rpush(key, JSON.stringify(value));
+    const keyName = `room:list:${key}`;
+
+    const t = await this.redis.type(keyName);
+    if (t !== 'none' && t !== 'hash') {
+      throw new Error(`Key "${keyName}" is type ${t}, not hash`);
+    }
+
+    // const existing = await this.redis.lrange(keyName, 0, -1);
+    // const existingParsed = existing.map((item) => JSON.parse(item));
+    // const hasSameId = existingParsed.some((player) => player.id === value.id);
+    // if (hasSameId) return;
+
+    await this.redis.hset(
+      keyName,
+      value.userId.toString(),
+      JSON.stringify(value),
+    );
   }
 
   async getList<T>(key: string): Promise<T[]> {
-    const data = await this.redis.lrange(key, 0, -1);
+    const keyName = `room:list:${key}`;
+    const data = await this.redis.hvals(keyName);
     return data.map((item) => JSON.parse(item));
+  }
+  async removeFromList(key: string, value: any, count = 1) {
+    const keyName = `room:list:${key}`;
+    await this.redis.lrem(keyName, count, JSON.stringify(value));
   }
 
   async deleteKey(key: string) {
-    await this.redis.del(key);
+    const keyName = `room:list:${key}`;
+    await this.redis.del(keyName);
   }
 }

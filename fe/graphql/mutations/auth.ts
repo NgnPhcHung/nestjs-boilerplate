@@ -2,6 +2,7 @@
 
 import { LoginDto } from "@/dtos";
 import { getClient } from "@/libs/apolloClient";
+import { decodeJwt } from "@/utils/decodeJwt";
 import { gql } from "@apollo/client";
 import { cookies } from "next/headers";
 
@@ -41,7 +42,9 @@ export async function userLogin(body: LoginDto) {
       path: "/",
     });
 
-    return { success: true, message: "Login successful" };
+    const user = decodeJwt(accessToken);
+
+    return { success: true, message: "Login successful", data: user };
   } catch (error) {
     throw {
       success: false,

@@ -7,7 +7,6 @@ export const CurrentUser = createParamDecorator(
     const context = GqlExecutionContext.create(ctx);
     const request = context.getContext().req;
     const decodedHeader = decodeHeader(request);
-    console.log('decodedHeader', decodedHeader);
 
     return decodedHeader.userId;
   },

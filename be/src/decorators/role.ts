@@ -1,7 +1,6 @@
-// auth/decorators/roles.decorator.ts
-import { UserRole } from '@consts';
 import { RoleGuard } from '@guards/role.guard';
 import { SetMetadata, UseGuards } from '@nestjs/common';
+import { UserRole } from 'generated/prisma';
 
 export const Roles = (roles: UserRole[]) => {
   return (

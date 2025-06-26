@@ -1,5 +1,6 @@
 const nextConfig = {
   /* config options here */
+
   async rewrites() {
     return [
       {
