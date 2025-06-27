@@ -17,6 +17,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "antd": "^5.25.4",
     "bcryptjs": "^3.0.2",
+    "cookies-next": "^6.0.0",
     "graphql": "^16.11.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^6.0.5",

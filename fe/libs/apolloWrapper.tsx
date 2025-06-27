@@ -32,8 +32,8 @@ function makeClient(token?: string) {
           graphqlHttpLink,
         ])
       : ApolloLink.from([
-          graphQLError, // Global GraphQL error handling link
-          authLink, // Apply authentication to client requests
+          graphQLError,
+          authLink,
           split(
             ({ query }) => {
               const definition = getMainDefinition(query);
@@ -42,15 +42,14 @@ function makeClient(token?: string) {
                 definition.operation === "subscription"
               );
             },
-            wsLink, // WebSocket link for subscriptions
-            graphqlHttpLink, // HTTP link for queries and mutations
+            wsLink,
+            graphqlHttpLink,
           ),
         ]);
 
-  // Return the configured ApolloClient instance.
   return new ApolloClient({
-    cache: new InMemoryCache(), // Caching mechanism for Apollo Client
-    link, // The combined link for network operations
+    cache: new InMemoryCache(),
+    link,
   });
 }
 

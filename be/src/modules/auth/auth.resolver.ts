@@ -1,4 +1,3 @@
-import { CurrentUser } from '@decorators/current-user';
 import { Public } from '@decorators/public';
 import { Logger } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
@@ -29,7 +28,7 @@ export class AuthResolver {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: +process.env.REFRESH_EXPIRED_IN,
+      maxAge: +process.env.REFRESH_COOKIE_EXPIRED_IN,
       path: '/',
     });
     return { accessToken };
@@ -56,17 +55,14 @@ export class AuthResolver {
 
   @Public()
   @Mutation(() => AuthResponse)
-  async refreshAccessToken(
-    @Context() context: GraphQLContext,
-    @CurrentUser() user: any,
-  ) {
-    const { req } = context;
+  async refreshAccessToken(@Context() context: GraphQLContext) {
+    this.logger.log(`Calling ${this.refreshAccessToken.name} with user:`);
 
+    const { req } = context;
     const refreshToken = req.cookies['x-refreshToken'];
-    const accessToken = await this.authService.refreshTokens(
-      user,
-      refreshToken,
-    );
+    console.log('cookies', req.cookies);
+
+    const accessToken = await this.authService.refreshTokens(refreshToken);
     return { accessToken };
   }
 

@@ -21,7 +21,6 @@ export default function SelectionPage() {
   const { data, loading } = useQuery<{ getMe: UserStorage }>(userQuery);
 
   useEffect(() => {
-    console.log(data?.getMe);
     if (data?.getMe) localStorage.setItem("user", JSON.stringify(data.getMe));
   }, [data]);
 

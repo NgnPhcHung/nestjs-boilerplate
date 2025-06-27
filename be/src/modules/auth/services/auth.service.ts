@@ -6,9 +6,9 @@ import { JwtService } from '@nestjs/jwt';
 import {
   AppConflictException,
   AppForbiddenException,
+  AppUnauthorizedRequest,
 } from '@utils/network/exception';
 import * as bcrypt from 'bcryptjs';
-import crypto from 'node:crypto';
 import { SignInDto } from '../dtos/signin.dto';
 import { SignUpDto } from '../dtos/signup.dto';
 import { hashPassword } from '../utils/hash-password';
@@ -31,7 +31,7 @@ export class AuthService {
     const newUser = await this.userService.createUser({ ...payload, password });
 
     const accessToken = this.getAccessToken(newUser);
-    const { token: refreshToken } = this.generateRefreshToken();
+    const refreshToken = this.generateRefreshToken(newUser);
 
     const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
     const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
@@ -55,7 +55,7 @@ export class AuthService {
 
     const accessToken = this.getAccessToken(user);
 
-    const { token: refreshToken } = this.generateRefreshToken();
+    const refreshToken = this.generateRefreshToken(user);
 
     const hash = await bcrypt.hash(refreshToken, 10);
 
@@ -68,12 +68,19 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refreshTokens(userId: number, refreshToken: string) {
-    const user = await this.userService.findById(userId);
-    if (!user) throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
+  async refreshTokens(refreshToken: string) {
+    console.log('refreshToken', refreshToken);
+
+    const decoded = this.jwtService.verify(refreshToken, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    if (!decoded.sub) {
+      throw new AppUnauthorizedRequest(ERROR_CODE.FAILED_TO_DECODE_AUTH);
+    }
 
     const hashedRefreshToken = await this.redisService.getData(
-      `refresh:${user.id}`,
+      `refresh:${decoded.sub.userId}`,
     );
     if (!hashedRefreshToken) {
       throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
@@ -83,7 +90,7 @@ export class AuthService {
 
     if (!isMatch) throw new AppForbiddenException(ERROR_CODE.INVALID_TOKEN);
 
-    const accessToken = this.getAccessToken(user);
+    const accessToken = this.getAccessToken(decoded.sub.userId);
     return accessToken;
   }
 
@@ -114,11 +121,20 @@ export class AuthService {
     );
   }
 
-  private generateRefreshToken() {
-    const token = crypto.randomBytes(64).toString('hex');
-    const expiresAt = new Date(Date.now() + process.env.REFRESH_EXPIRED_IN);
+  private generateRefreshToken(user: Users) {
+    return this.jwtService.sign(
+      { sub: { userId: user.id, role: user.role } },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: process.env.REFRESH_EXPIRED_IN,
+        algorithm: 'HS256',
+      },
+    );
 
-    return { token, expiresAt };
+    // const token = crypto.randomBytes(64).toString('hex');
+    // const expiresAt = new Date(Date.now() + process.env.REFRESH_EXPIRED_IN);
+    //
+    // return { token, expiresAt };
   }
 
   async blacklistToken(token: string, expiresIn: number) {

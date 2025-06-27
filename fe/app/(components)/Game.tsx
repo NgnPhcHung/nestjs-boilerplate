@@ -1,75 +1,20 @@
 "use client";
 
 import { setupPixi } from "@/game/initGame";
+import {
+  UPDATE_PLAYER_POSITION_MUTATION,
+  USER_JOIN_MUTATION,
+} from "@/graphql/mutations/playground";
+import { LIST_PLAYER } from "@/graphql/queries/playground";
+import {
+  USER_JOINED_SUBSCRIPTION,
+  USER_MOVE_SUBSCRIPTION,
+} from "@/graphql/subscription/playground";
+import { getMeClient } from "@/utils/getMeClient";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
-import gql from "graphql-tag";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { UserPlayground } from "./model/playgroundModel";
-import { getMeClient } from "@/utils/getMeClient";
 
-const USER_JOIN_MUTATION = gql`
-  mutation UserJoinPlayground($userId: Int!) {
-    userJoinPlayground(userId: $userId) {
-      userId
-      avatarImg
-      position {
-        x
-        y
-      }
-    }
-  }
-`;
-
-const LIST_PLAYER = gql`
-  query players {
-    players {
-      userId
-      position {
-        x
-        y
-      }
-      avatarImg
-    }
-  }
-`;
-
-const USER_JOINED_SUBSCRIPTION = gql`
-  subscription UserJoined {
-    userJoined {
-      userId
-    }
-  }
-`;
-
-const USER_MOVE_SUBSCRIPTION = gql`
-  subscription UserMoved {
-    userMoved {
-      userId
-      position {
-        x
-        y
-      }
-    }
-  }
-`;
-const PLAYER_FIELDS = gql`
-  fragment PlayerFields on Player {
-    userId
-    avatarImg
-    position {
-      x
-      y
-    }
-  }
-`;
-const UPDATE_PLAYER_POSITION_MUTATION = gql`
-  mutation UpdatePlayerPosition($userId: Int!, $x: Float!, $y: Float!) {
-    updatePlayerPosition(userId: $userId, x: $x, y: $y) {
-      ...PlayerFields
-    }
-  }
-  ${PLAYER_FIELDS}
-`;
 interface UserJoinedSubscriptionData {
   userJoined: UserPlayground;
 }
@@ -212,7 +157,6 @@ export default function Game() {
       const currentPos = playerPosRef.current;
       let dx = currentPos.x + x;
       let dy = currentPos.y + y;
-      console.log(dx, dy);
 
       if (
         gameSpace &&
