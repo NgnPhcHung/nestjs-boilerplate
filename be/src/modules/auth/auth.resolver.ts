@@ -7,6 +7,7 @@ import { AuthResponse } from './models/auth-response.model';
 import { UserModel } from './models/user.model';
 import { AuthService } from './services/auth.service';
 import { GraphQLContext } from '@types';
+import { setCookie } from '@utils/setCookie';
 
 @Resolver(() => UserModel)
 export class AuthResolver {
@@ -22,15 +23,8 @@ export class AuthResolver {
     this.logger.log(
       `Calling ${this.login.name} with body ${JSON.stringify(input)}`,
     );
-    const { res } = context;
     const { refreshToken, accessToken } = await this.authService.login(input);
-    res.cookie('x-refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: +process.env.REFRESH_COOKIE_EXPIRED_IN,
-      path: '/',
-    });
+    setCookie(context, 'x-refreshToken', refreshToken);
     return { accessToken };
   }
 
@@ -41,15 +35,7 @@ export class AuthResolver {
     @Context() context: GraphQLContext,
   ): Promise<AuthResponse> {
     const { refreshToken, accessToken } = await this.authService.signUp(input);
-    const { res } = context;
-    res.cookie('x-refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: +process.env.REFRESH_EXPIRED_IN,
-      path: '/',
-    });
-
+    setCookie(context, 'x-refreshToken', refreshToken);
     return { accessToken };
   }
 
@@ -57,11 +43,8 @@ export class AuthResolver {
   @Mutation(() => AuthResponse)
   async refreshAccessToken(@Context() context: GraphQLContext) {
     this.logger.log(`Calling ${this.refreshAccessToken.name} with user:`);
-
     const { req } = context;
     const refreshToken = req.cookies['x-refreshToken'];
-    console.log('cookies', req.cookies);
-
     const accessToken = await this.authService.refreshTokens(refreshToken);
     return { accessToken };
   }
