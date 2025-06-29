@@ -3,8 +3,8 @@
 import { LoginDto } from "@/dtos";
 import { getClient } from "@/libs/apolloClient";
 import { decodeJwt } from "@/utils/decodeJwt";
+import { setAuthToken } from "@/utils/setAuthToken";
 import { gql } from "@apollo/client";
-import { cookies } from "next/headers";
 
 const LOGIN_MUTATION = gql`
   mutation Login($input: SignInDto!) {
@@ -31,19 +31,9 @@ export async function userLogin(body: LoginDto) {
     }
 
     const accessToken = data.login.accessToken;
-    const expiresInSeconds = 15 * 60;
-
-    const cookieStore = cookies();
-    cookieStore.set("authorization", `Bearer ${accessToken}`, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: expiresInSeconds,
-      path: "/",
-    });
+    setAuthToken(accessToken);
 
     const user = decodeJwt(accessToken);
-
     return { success: true, message: "Login successful", data: user };
   } catch (error) {
     throw {

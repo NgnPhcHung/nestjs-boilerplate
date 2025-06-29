@@ -3,7 +3,7 @@ import {
   GraphqlCustomError,
   NetworkOperationError,
 } from "@/types/graphql";
-import { setCookie } from "@/utils/auth";
+import { setAuthToken } from "@/utils/setAuthToken";
 import {
   ApolloClient,
   FetchResult,
@@ -15,6 +15,7 @@ import { onError } from "@apollo/client/link/error";
 
 let isRefreshing = false;
 let pendingRequests: ((value: unknown) => void)[] = [];
+
 function resolvePendingRequests(): void {
   pendingRequests.forEach((resolve) => resolve(undefined));
   pendingRequests = [];
@@ -26,9 +27,10 @@ const REFRESH_TOKEN_MUTATION = gql`
     }
   }
 `;
+
 const createRefreshClient = () => {
   return new ApolloClient({
-    uri: "http://localhost:3001/graphql",
+    uri: process.env.APP_URL,
     cache: new InMemoryCache(),
     credentials: "include",
     defaultOptions: {
@@ -41,6 +43,7 @@ const createRefreshClient = () => {
     },
   });
 };
+
 export const graphQLError = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
     let finalErrorToPropagate: Error | null = null;
@@ -71,7 +74,7 @@ export const graphQLError = onError(
                 const newAccessToken =
                   response.data?.refreshAccessToken?.accessToken;
                 if (newAccessToken) {
-                  setCookie("authorization", newAccessToken);
+                  setAuthToken(newAccessToken);
                   isRefreshing = false;
                   resolvePendingRequests();
                   operation.setContext(({ headers = {} }) => ({
