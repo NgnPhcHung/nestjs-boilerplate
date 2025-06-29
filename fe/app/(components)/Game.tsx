@@ -21,7 +21,6 @@ interface UserJoinedSubscriptionData {
 
 export default function Game() {
   const user = getMeClient();
-
   const containerRef = useRef<HTMLDivElement>(null);
   const playerPosRef = useRef<{ x: number; y: number }>({ x: 100, y: 100 });
   const pixiRef = useRef<any>(null);
@@ -31,7 +30,6 @@ export default function Game() {
   }>(LIST_PLAYER);
 
   const [players, setPlayers] = useState<UserPlayground[]>();
-
   const [userJoinPlayground] = useMutation(USER_JOIN_MUTATION);
   const [updatePlayerPosition] = useMutation(UPDATE_PLAYER_POSITION_MUTATION);
 
@@ -53,9 +51,9 @@ export default function Game() {
 
   useSubscription(USER_MOVE_SUBSCRIPTION, {
     onData: ({ data }) => {
-      console.log({ data });
-
       const movedPlayer = data.data?.userMoved;
+      console.log(data);
+
       if (movedPlayer) {
         setPlayers((prev) =>
           prev?.map((player) =>
@@ -65,7 +63,7 @@ export default function Game() {
           ),
         );
 
-        if (movedPlayer.userId === user.userId) {
+        if (movedPlayer.userId === user.id) {
           playerPosRef.current = {
             x: movedPlayer.position.x,
             y: movedPlayer.position.y,
@@ -87,8 +85,10 @@ export default function Game() {
   useEffect(() => {
     const doJoin = async () => {
       try {
+        console.log(user.id);
+
         const res = await userJoinPlayground({
-          variables: { userId: user.userId },
+          variables: { userId: user.id },
         });
 
         if (res?.data?.userJoinPlayground && !dataPlayersLoading) {
@@ -96,7 +96,7 @@ export default function Game() {
           const {
             position: { x, y },
           } = joinedUser;
-          pixiRef.current?.updatePlayerPosition(user.userId, x, y);
+          pixiRef.current?.updatePlayerPosition(user.id, x, y);
           if (containerRef.current) {
             const pixiInstance = await setupPixi(
               containerRef.current,
@@ -115,7 +115,7 @@ export default function Game() {
     if (!containerRef.current) return;
 
     doJoin();
-  }, [user.userId, userJoinPlayground, dataPlayersLoading, joinedAppUsers]);
+  }, [user.id, userJoinPlayground, dataPlayersLoading, joinedAppUsers]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -139,7 +139,7 @@ export default function Game() {
 
   useEffect(() => {
     if (dataPlayers?.players) {
-      const foundMe = dataPlayers.players.find((p) => p.userId === user.userId);
+      const foundMe = dataPlayers.players.find((p) => p.userId === user.id);
       if (foundMe) {
         playerPosRef.current = {
           x: foundMe.position.x,
@@ -167,14 +167,14 @@ export default function Game() {
       ) {
         updatePlayerPosition({
           variables: {
-            userId: user.userId,
+            userId: user.id,
             x: dx,
             y: dy,
           },
         });
         playerPosRef.current = { x: dx, y: dy };
 
-        pixiRef.current?.updatePlayerPosition(user.userId, dx, dy);
+        pixiRef.current?.updatePlayerPosition(user.id, dx, dy);
       }
     },
     [players],

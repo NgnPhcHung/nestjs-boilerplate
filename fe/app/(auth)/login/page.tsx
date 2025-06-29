@@ -16,7 +16,6 @@ export default function LoginPage() {
     const loginData = localStorage.getItem("user_login");
     if (loginData) {
       form.setFieldsValue(JSON.parse(loginData) as LoginDto);
-      console.log(JSON.parse(loginData) as LoginDto);
     }
     return () => {
       return;
@@ -31,8 +30,6 @@ export default function LoginPage() {
       });
 
       if (result.success) {
-        console.log({ result });
-
         formData.remember &&
           localStorage.setItem("user_login", JSON.stringify(formData));
         localStorage.setItem("user", JSON.stringify(result.data));

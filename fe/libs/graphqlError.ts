@@ -3,7 +3,7 @@ import {
   GraphqlCustomError,
   NetworkOperationError,
 } from "@/types/graphql";
-import { setAuthToken } from "@/utils/setAuthToken";
+import { setAuthCookie } from "@/utils/setAuthCookie";
 import {
   ApolloClient,
   FetchResult,
@@ -16,6 +16,7 @@ import { onError } from "@apollo/client/link/error";
 let isRefreshing = false;
 let pendingRequests: ((value: unknown) => void)[] = [];
 
+const FIFTEEN_MINS = 15 * 60;
 function resolvePendingRequests(): void {
   pendingRequests.forEach((resolve) => resolve(undefined));
   pendingRequests = [];
@@ -69,12 +70,10 @@ export const graphQLError = onError(
             refreshClient
               .mutate({ mutation: REFRESH_TOKEN_MUTATION })
               .then((response: FetchResult) => {
-                console.log("response", response);
-
                 const newAccessToken =
                   response.data?.refreshAccessToken?.accessToken;
                 if (newAccessToken) {
-                  setAuthToken(newAccessToken);
+                  setAuthCookie("authorization", newAccessToken, FIFTEEN_MINS);
                   isRefreshing = false;
                   resolvePendingRequests();
                   operation.setContext(({ headers = {} }) => ({

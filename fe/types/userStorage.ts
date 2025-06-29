@@ -1,4 +1,4 @@
 export interface UserStorage {
-  userId: number;
+  id: number;
   role: string;
 }

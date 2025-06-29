@@ -3,7 +3,7 @@
 import { LoginDto } from "@/dtos";
 import { getClient } from "@/libs/apolloClient";
 import { decodeJwt } from "@/utils/decodeJwt";
-import { setAuthToken } from "@/utils/setAuthToken";
+import { setAuthCookie } from "@/utils/setAuthCookie";
 import { gql } from "@apollo/client";
 
 const LOGIN_MUTATION = gql`
@@ -13,6 +13,8 @@ const LOGIN_MUTATION = gql`
     }
   }
 `;
+
+const FIFTEEN_MINS = 15 * 60;
 
 export async function userLogin(body: LoginDto) {
   try {
@@ -31,7 +33,7 @@ export async function userLogin(body: LoginDto) {
     }
 
     const accessToken = data.login.accessToken;
-    setAuthToken(accessToken);
+    setAuthCookie("authorization", accessToken, FIFTEEN_MINS);
 
     const user = decodeJwt(accessToken);
     return { success: true, message: "Login successful", data: user };

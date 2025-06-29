@@ -68,8 +68,6 @@ export class GraphqlCustomError extends Error {
   ) {
     let message: string;
 
-    console.log(details?.errorCode);
-
     if (details) {
       if (details.errorCode && ServerErrorCode[details.errorCode]) {
         message = ServerErrorCode[details.errorCode];

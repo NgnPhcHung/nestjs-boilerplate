@@ -14,9 +14,12 @@ export class LoggingInterceptor implements NestInterceptor {
     const now = Date.now();
 
     const gqlContext = GqlExecutionContext.create(context);
+    const ctx = gqlContext.getContext();
     const info = gqlContext.getInfo();
     const operation = info.operation.operation;
     const fieldName = info.fieldName;
+
+    console.log({ operation: ctx.req.cookies });
 
     return next.handle().pipe(
       tap((data) =>

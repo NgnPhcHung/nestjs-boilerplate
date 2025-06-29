@@ -18,11 +18,14 @@ const userQuery = gql`
 `;
 
 export default function SelectionPage() {
-  const { data, loading } = useQuery<{ getMe: UserStorage }>(userQuery);
+  const { data, loading, error } = useQuery<{ getMe: UserStorage }>(userQuery);
 
   useEffect(() => {
     if (data?.getMe) localStorage.setItem("user", JSON.stringify(data.getMe));
-  }, [data]);
+    if (error) {
+      console.log(error);
+    }
+  }, [data, error]);
 
   if (loading) {
     return <Spin />;
