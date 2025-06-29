@@ -4,6 +4,8 @@ import { RedisService } from '@modules/redis/redis.service';
 import { PrismaService } from '@modules/prisma/prisma.service';
 import { SignUpDto } from '@modules/auth/dtos/signup.dto';
 import { Prisma, UserRole } from 'generated/prisma';
+import { AppUnauthorizedRequest } from '@utils/network/exception';
+import { ERROR_CODE } from '@consts/error-code';
 
 @Injectable()
 export class UserService {
@@ -20,7 +22,8 @@ export class UserService {
     });
   }
 
-  async findById(id: number) {
+  async findById(id?: number) {
+    if (!id) throw new AppUnauthorizedRequest(ERROR_CODE.INVALID_USER);
     return this.prisma.users.findUnique({ where: { id } });
   }
 
